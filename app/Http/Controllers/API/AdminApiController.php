@@ -66,6 +66,18 @@ class AdminApiController extends Controller
     }
 
     /**
+     * logout api
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function logout()
+    {
+        $user = $this->guard()->user();
+        $user->token()->revoke();
+        return response()->json(['success' => 'You are logged out.'], $this->successStatus);
+    }
+
+    /**
      * details api
      *
      * @return \Illuminate\Http\Response
@@ -75,4 +87,5 @@ class AdminApiController extends Controller
         $user = $this->guard()->user();
         return response()->json(['success' => $user], $this->successStatus);
     }
+
 }
