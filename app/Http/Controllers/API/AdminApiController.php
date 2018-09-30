@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Admin;
-use App\Http\Controllers\Controller;
-use Auth;
+use App\Models\Admin;
+use App\Repositories\Repository;
 use Illuminate\Http\Request;
+use Auth;
 use Validator;
 
-class AdminApiController extends Controller
+class AdminApiController extends ApiController
 {
+    // Repository
+    protected $repo;
 
-    public $successStatus = 200;
-
-    public function __construct()
+    public function __construct(Admin $admin)
     {
         $this->middleware('auth:admin-api')->except(['login', 'register']);
+        $this->repo = new Repository($admin);
     }
 
     protected function guard()
@@ -34,7 +35,7 @@ class AdminApiController extends Controller
         if ($this->sessionGuard()->attempt(['email' => request('email'), 'password' => request('password')])) {
             $user = $this->sessionGuard()->user();
             $success['token'] = $user->createToken('MyApp')->accessToken;
-            return response()->json(['success' => $success, 'user' => $user->toArray()], $this->successStatus);
+            return response()->json(['success' => $success, 'user' => $user->toArray()], $this->statusCode);
         }
 
         return response()->json(['error' => 'Unauthorized.'], 401);
@@ -55,14 +56,15 @@ class AdminApiController extends Controller
             'job_title' => 'required',
         ]);
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 401);
+            // dd('dzfjsd');
+            $this->setStatusCode(401)->respondWithErrors($validator->errors());
         }
         $input = $request->all();
         $input['password'] = bcrypt($input['password']);
-        $user = Admin::create($input);
+        $user = $this->repo->create($input);
         $success['token'] = $user->createToken('MyApp')->accessToken;
         $success['name'] = $user->name;
-        return response()->json(['success' => $success], $this->successStatus);
+        $this->responsd(['success' => $success]);
     }
 
     /**
@@ -74,7 +76,7 @@ class AdminApiController extends Controller
     {
         $user = $this->guard()->user();
         $user->token()->revoke();
-        return response()->json(['success' => 'You are logged out.'], $this->successStatus);
+        $this->respond(['success' => 'You are logged out.']);
     }
 
     /**
@@ -85,7 +87,7 @@ class AdminApiController extends Controller
     public function details()
     {
         $user = $this->guard()->user();
-        return response()->json(['success' => $user], $this->successStatus);
+        $this->respond(['success' => $user]);
     }
 
 }
