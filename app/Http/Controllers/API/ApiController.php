@@ -62,7 +62,6 @@ class ApiController extends Controller
         $data = [
             'errors' => $errors,
         ];
-
         return new JsonResponse($data, $this->getStatusCode(), $headers);
     }
 

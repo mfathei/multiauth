@@ -31,20 +31,19 @@ class AdminApiController extends ApiController
 
     public function login()
     {
-        // dd($this->guard());
         if ($this->sessionGuard()->attempt(['email' => request('email'), 'password' => request('password')])) {
             $user = $this->sessionGuard()->user();
             $success['token'] = $user->createToken('MyApp')->accessToken;
-            return response()->json(['success' => $success, 'user' => $user->toArray()], $this->statusCode);
+            return $this->respond(['success' => $success, 'user' => $user->toArray()]);
         }
 
-        return response()->json(['error' => 'Unauthorized.'], 401);
+        return $this->respondUnauthorized();
     }
 
     /**
      * Register api
      *
-     * @return \Illuminate\Http\Response
+     * @return Symfony\Component\HttpFoundation\JsonResponse
      */
     public function register(Request $request)
     {
@@ -56,38 +55,37 @@ class AdminApiController extends ApiController
             'job_title' => 'required',
         ]);
         if ($validator->fails()) {
-            // dd('dzfjsd');
-            $this->setStatusCode(401)->respondWithErrors($validator->errors());
+            return $this->setStatusCode(401)->respondWithErrors($validator->errors());
         }
         $input = $request->all();
         $input['password'] = bcrypt($input['password']);
         $user = $this->repo->create($input);
         $success['token'] = $user->createToken('MyApp')->accessToken;
         $success['name'] = $user->name;
-        $this->responsd(['success' => $success]);
+        return $this->respond(['success' => $success]);
     }
 
     /**
      * logout api
      *
-     * @return \Illuminate\Http\Response
+     * @return Symfony\Component\HttpFoundation\JsonResponse
      */
     public function logout()
     {
         $user = $this->guard()->user();
         $user->token()->revoke();
-        $this->respond(['success' => 'You are logged out.']);
+        return $this->respond(['success' => 'You are logged out.']);
     }
 
     /**
      * details api
      *
-     * @return \Illuminate\Http\Response
+     * @return Symfony\Component\HttpFoundation\JsonResponse
      */
     public function details()
     {
         $user = $this->guard()->user();
-        $this->respond(['success' => $user]);
+        return $this->respond(['success' => $user]);
     }
 
 }
