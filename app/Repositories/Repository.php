@@ -16,9 +16,9 @@ class Repository implements RepositoryInterface
     }
 
     // Get all instances of model
-    public function all()
+    public function all(array $columns = ['*'])
     {
-        return $this->model->all();
+        return $this->model->all($columns);
     }
 
     // Create a new record in the database
